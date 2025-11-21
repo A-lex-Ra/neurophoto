@@ -1,0 +1,155 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum GenerationStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum TransactionType {
+  PURCHASE
+  USAGE
+  REFUND
+  BONUS
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  password  String
+  credits   Int       @default(5)
+  role      UserRole  @default(USER)
+  
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+  
+  hashedRefreshToken String?
+
+  files         File[]
+  generations   Generation[]
+  transactions  Transaction[]
+
+  @@map("users")
+}
+
+model File {
+  id            String    @id @default(cuid())
+  originalName  String
+  filename      String    @unique
+  path          String
+  bucket        String    @default("generations")
+  
+  hash          String    @unique
+  mimeType      String
+  size          Int
+  width         Int?
+  height        Int?
+  
+  userId        String
+  isPublic      Boolean   @default(false)
+  downloadCount Int       @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  
+  user                User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inputGenerations    Generation[] @relation("InputFiles")
+  outputGenerations   Generation[] @relation("OutputFiles")
+
+  @@index([userId])
+  @@index([hash])
+  @@map("files")
+}
+
+model AccessCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  usesLeft  Int      @default(50) // или сколько генераций разрешаешь
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  expiresAt DateTime? // опционально, если хочешь временные коды
+  
+  // опционально, для трекинга
+  generations Generation[]
+}
+
+model Generation {
+  id              String           @id @default(cuid())
+  jobId           String           @unique
+  
+  userId          String
+  inputFileId     String?
+  outputFileId    String?
+  accessCodeId    String?
+  
+  prompt          String           @db.Text
+  model           String
+  status          GenerationStatus @default(PENDING)
+  progress        Int              @default(0)
+  
+  textResponse    String?          @db.Text
+  error           String?          @db.Text
+  creditsUsed     Int              @default(1)
+  durationMs      Int?
+  
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inputFile       File?            @relation("InputFiles", fields: [inputFileId], references: [id], onDelete: SetNull)
+  outputFile      File?            @relation("OutputFiles", fields: [outputFileId], references: [id], onDelete: SetNull)
+  accessCode      AccessCode?      @relation(fields: [accessCodeId], references: [id])
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([status])
+  @@map("generations")
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  type        TransactionType
+  amount      Int
+  description String?
+  stripeId    String?         @unique
+  status      PaymentStatus   @default(PENDING)
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([stripeId])
+  @@map("transactions")
+}
