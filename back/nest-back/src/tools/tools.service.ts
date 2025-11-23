@@ -41,7 +41,7 @@ class BackgroundRemovalTool {
                     "cost": 0 // No additional cost for color selection
                 },
                 "background_image": {
-                    "type": "string",
+                    "type": "image",
                     "description": "Replacement background image (fileID)",
                     "default": null,
                     "cost": 0.5 // Additional 0.5 credits if custom background is used

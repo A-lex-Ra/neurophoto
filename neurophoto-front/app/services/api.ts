@@ -9,12 +9,15 @@ export interface ToolParameter {
   min?: number;
   max?: number;
   enum?: any[];
+  cost?: number; // credit cost for this parameter
+  enumCosts?: Record<string, number>; // cost per enum value
 }
 
 export interface Tool {
   name: string;
   display_name: string;
   description: string;
+  cost?: number; // base cost for the tool
   parameters: {
     type: string;
     properties: Record<string, ToolParameter>;

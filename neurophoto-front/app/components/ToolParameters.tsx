@@ -14,33 +14,42 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
   values,
   onChange,
   onRun,
-  loading
+  loading,
 }) => {
+  // Helper to render a cost badge
+  const renderCostBadge = (cost?: number) =>
+    cost !== undefined ? (
+      <span className="ml-2 text-xs font-medium text-primary-foreground bg-secondary rounded px-1 py-0.5">
+        {cost} ⚡
+      </span>
+    ) : null;
+
   const [uploading, setUploading] = useState<Record<string, boolean>>({});
 
   const handleFileUpload = async (name: string, file: File) => {
     try {
-      setUploading(prev => ({ ...prev, [name]: true }));
+      setUploading((prev) => ({ ...prev, [name]: true }));
       const uploaded = await api.uploadFile(file);
       onChange(name, uploaded.id);
     } catch (e) {
       console.error('Upload failed:', e);
     } finally {
-      setUploading(prev => ({ ...prev, [name]: false }));
+      setUploading((prev) => ({ ...prev, [name]: false }));
     }
   };
 
   const renderParameter = (name: string, param: ToolParameter) => {
-    // Skip image parameter as it's handled separately (main input)
+    // Skip the main image input – it is handled separately elsewhere if needed
     if (name === 'image') return null;
 
     const value = values[name] ?? param.default;
 
+    // Boolean – render as a checkbox
     if (param.type === 'boolean') {
       return (
         <div key={name} className="mb-4 flex items-center justify-between">
           <label className="text-sm font-medium text-foreground">
-            {param.description}
+            {param.description}{renderCostBadge(param.cost)}
           </label>
           <input
             type="checkbox"
@@ -52,6 +61,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
       );
     }
 
+    // Image – file upload UI with status gauge
     if (param.type === 'image') {
       const isUploaded = !!value;
       const isUploading = uploading[name];
@@ -59,19 +69,19 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
       return (
         <div key={name} className="mb-4">
           <label className="block text-sm font-medium mb-2 text-foreground">
-            {param.description}
+            {param.description}{renderCostBadge(param.cost)}
           </label>
-
           <div className="relative">
             {!isUploaded ? (
-              <label className={`
-                flex flex-col items-center justify-center w-full h-32 
-                border-2 border-dashed rounded-lg cursor-pointer transition-colors
-                ${isUploading
-                  ? 'bg-muted border-muted-foreground/50'
-                  : 'bg-secondary/20 border-border hover:bg-secondary/30'
-                }
-              `}>
+              <label
+                className={`
+                  flex flex-col items-center justify-center w-full h-32 
+                  border-2 border-dashed rounded-lg cursor-pointer transition-colors
+                  ${isUploading
+                    ? 'bg-muted border-muted-foreground/50'
+                    : 'bg-secondary/20 border-border hover:bg-secondary/30'}
+                `}
+              >
                 {isUploading ? (
                   <div className="flex flex-col items-center">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
@@ -82,9 +92,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
                     <svg className="w-8 h-8 text-muted-foreground mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span className="text-xs text-muted-foreground text-center px-2">
-                      Нажмите для загрузки
-                    </span>
+                    <span className="text-xs text-muted-foreground text-center px-2">Нажмите для загрузки</span>
                   </>
                 )}
                 <input
@@ -106,9 +114,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <span className="text-sm text-foreground truncate">
-                    Изображение загружено
-                  </span>
+                  <span className="text-sm text-foreground truncate">Изображение загружено</span>
                 </div>
                 <button
                   onClick={() => onChange(name, null)}
@@ -122,7 +128,7 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
               </div>
             )}
 
-            {/* Gauge / Status Indicator */}
+            {/* Upload status gauge */}
             <div className="mt-1 flex items-center gap-2">
               <div className="flex-1 h-1 bg-secondary rounded-full overflow-hidden">
                 <div
@@ -138,11 +144,12 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
       );
     }
 
+    // Enum – render a select dropdown
     if (param.enum) {
       return (
         <div key={name} className="mb-4">
           <label className="block text-sm font-medium mb-2 text-foreground">
-            {param.description}
+            {param.description}{renderCostBadge(param.cost)}
           </label>
           <select
             value={value ?? ''}
@@ -162,11 +169,12 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
       );
     }
 
+    // Number – render a range slider
     if (param.type === 'number') {
       return (
         <div key={name} className="mb-4">
           <label className="block text-sm font-medium mb-2 text-foreground">
-            {param.description}
+            {param.description}{renderCostBadge(param.cost)}
           </label>
           <input
             type="range"
@@ -182,11 +190,12 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
       );
     }
 
-    if (param.type === 'string' && name !== 'background_image') {
+    // String – render a text input (excluding background_image which is handled elsewhere)
+    if (param.type === 'string') {
       return (
         <div key={name} className="mb-4">
           <label className="block text-sm font-medium mb-2 text-foreground">
-            {param.description}
+            {param.description}{renderCostBadge(param.cost)}
           </label>
           <input
             type="text"
@@ -204,20 +213,16 @@ export const ToolParameters: React.FC<ToolParametersProps> = ({
   return (
     <div className="bg-card rounded-lg shadow-lg p-6 mb-4 pointer-events-auto max-h-[60vh] overflow-y-auto">
       <h3 className="text-lg font-semibold mb-4 text-card-foreground">
-        {tool.display_name}
+        {tool.display_name}{tool.cost !== undefined && renderCostBadge(tool.cost)}
       </h3>
       <p className="text-sm text-muted-foreground mb-4">{tool.description}</p>
 
-      {Object.entries(tool.parameters.properties).map(([name, param]) =>
-        renderParameter(name, param)
-      )}
+      {Object.entries(tool.parameters.properties).map(([name, param]) => renderParameter(name, param))}
 
       <button
         onClick={onRun}
         disabled={loading}
-        className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold
-          hover:bg-primary/90 hover:cursor-pointer disabled:bg-muted disabled:cursor-not-allowed 
-          disabled:text-muted-foreground transition-colors mt-4"
+        className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-semibold hover:bg-primary/90 hover:cursor-pointer disabled:bg-muted disabled:cursor-not-allowed disabled:text-muted-foreground transition-colors mt-4"
       >
         {loading ? 'Обработка...' : 'Запустить'}
       </button>
