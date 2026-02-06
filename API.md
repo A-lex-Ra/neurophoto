@@ -1,8 +1,8 @@
-# 📖 NeuroPhoto API Documentation
+﻿# NeuroPhoto API Documentation
 
 Base URL: `http://localhost:3001`
 
-## 🖼️ Gallery Service
+## Gallery Service
 
 ### Upload File
 
@@ -41,7 +41,7 @@ curl -X POST http://localhost:3001/api/gallery/upload \
 
 **GET** `/api/gallery/user/:userId?limit=50&offset=0`
 
-Get list of files for a specific user.
+Get a list of files for a specific user.
 
 **Parameters:**
 - `userId` (path) - User ID
@@ -84,7 +84,7 @@ Download a file by ID.
 
 ### Get Public URL
 
-**GET** `/api/gallery/:fileId/url`
+**GET** `/api/gallery/:fileId/public-url`
 
 Get public URL for file access.
 
@@ -101,7 +101,7 @@ Get public URL for file access.
 
 **DELETE** `/api/gallery/:fileId`
 
-Soft delete a file (mark as deleted, don't remove from storage).
+Soft delete a file (mark as deleted, don’t remove from storage).
 
 **Response:**
 ```json
@@ -112,7 +112,7 @@ Soft delete a file (mark as deleted, don't remove from storage).
 
 ---
 
-## 🎨 Generation Service
+## Generation Service
 
 ### Create Generation
 
@@ -123,9 +123,9 @@ Create a new AI image generation task.
 **Request:**
 ```json
 {
-  "inputFileId": "file-id", // optional
+  "inputFileId": "file-id",
   "prompt": "Transform this image into cyberpunk style",
-  "model": "gemini-2.5-flash-image-preview" // optional
+  "model": "gemini-2.5-flash-image-preview"
 }
 ```
 
@@ -173,7 +173,7 @@ const eventSource = new EventSource('http://localhost:3001/api/generations/strea
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);
   console.log('Progress:', data.data.progress);
-  
+
   if (data.data.state === 'completed') {
     eventSource.close();
   }
@@ -259,7 +259,7 @@ Cancel or delete a generation.
 
 ---
 
-## 🛠️ Tools Service
+## Tools Service
 
 ### List Tools
 
@@ -267,13 +267,15 @@ Cancel or delete a generation.
 
 Get a list of available tools and their parameters.
 
+**Note:** Tool display strings are localized. Depending on configuration, fields like `display_name` and `description` may be returned in Russian or English.
+
 **Response:**
 ```json
 [
   {
     "name": "background_removal",
-    "display_name": "Замена фона",
-    "description": "Заменяет фон на выбранный цвет или изображение",
+    "display_name": "Background Replace",
+    "description": "Replaces the background with a chosen color or image",
     "parameters": {
       "type": "object",
       "properties": {
@@ -284,9 +286,9 @@ Get a list of available tools and their parameters.
         },
         "background_color": {
           "type": "string",
-          "description": "Выберите цвет фона",
-          "default": "#FFFFFF (белый)",
-          "enum": ["#FFFFFF (белый)", "#000000 (чёрный)", "transparent (прозрачный)"]
+          "description": "Choose background color",
+          "default": "#FFFFFF (white)",
+          "enum": ["#FFFFFF (white)", "#000000 (black)", "transparent"]
         },
         "background_image": {
           "type": "string",
@@ -312,7 +314,7 @@ Execute a specific tool. This internally creates a generation task.
 ```json
 {
   "image": "file-id",
-  "background_color": "#FFFFFF (белый)"
+  "background_color": "#FFFFFF (white)"
 }
 ```
 
@@ -328,7 +330,7 @@ Execute a specific tool. This internally creates a generation task.
 
 ---
 
-## 📊 Status Codes
+## Status Codes
 
 - `200` - Success
 - `201` - Created
@@ -339,27 +341,35 @@ Execute a specific tool. This internally creates a generation task.
 
 ---
 
-## 🔐 Authentication
+## Authentication
 
-> **Note:** Authentication is not yet implemented in current version.
-> All requests use demo user ID: `demo-user-id`
+Authentication is implemented with JWT access and refresh tokens.
 
-Future implementation will use JWT tokens:
+### Endpoints
 
 ```bash
-# Login (future)
+# Register
+curl -X POST http://localhost:3001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"demo@neurophoto.com","password":"demo123","name":"Demo"}'
+
+# Login
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"demo@neurophoto.com","password":"demo123"}'
 
-# Use token
+# Refresh (requires refresh token)
+curl -X POST http://localhost:3001/api/auth/refresh \
+  -H "Authorization: Bearer <refresh_token>"
+
+# Access protected endpoints
 curl -X GET http://localhost:3001/api/generations/list \
-  -H "Authorization: Bearer <token>"
+  -H "Authorization: Bearer <access_token>"
 ```
 
 ---
 
-## 🧪 Testing API
+## Testing API
 
 ### Using curl
 
@@ -394,7 +404,7 @@ curl http://localhost:3001/api/generations/stream/$JOB_ID
 
 ---
 
-## 📝 Data Models
+## Data Models
 
 ### GenerationStatus Enum
 - `PENDING` - Waiting in queue
@@ -415,7 +425,7 @@ curl http://localhost:3001/api/generations/stream/$JOB_ID
 
 ---
 
-## 🚀 Rate Limits
+## Rate Limits
 
 > Not implemented yet
 
@@ -426,7 +436,7 @@ Future limits:
 
 ---
 
-## 📖 Examples
+## Examples
 
 ### Complete Flow Example (Node.js)
 
@@ -441,31 +451,31 @@ async function generateImage() {
   // 1. Upload image
   const form = new FormData();
   form.append('file', fs.createReadStream('./input.jpg'));
-  
+
   const uploadRes = await axios.post(`${API_URL}/api/gallery/upload`, form, {
     headers: form.getHeaders(),
   });
-  
+
   const fileId = uploadRes.data.id;
   console.log('Uploaded file:', fileId);
-  
+
   // 2. Create generation
   const genRes = await axios.post(`${API_URL}/api/generations/create`, {
     inputFileId: fileId,
     prompt: 'Transform into oil painting style',
   });
-  
+
   const { id, jobId } = genRes.data;
   console.log('Generation started:', id);
-  
+
   // 3. Wait for completion (polling)
   let completed = false;
   while (!completed) {
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     const statusRes = await axios.get(`${API_URL}/api/generations/${id}`);
     console.log('Status:', statusRes.data.status, statusRes.data.progress + '%');
-    
+
     if (statusRes.data.status === 'COMPLETED') {
       completed = true;
       console.log('Result:', statusRes.data.textResponse);
@@ -481,4 +491,4 @@ generateImage().catch(console.error);
 
 ---
 
-**Happy coding! 🎨**
+Happy coding.

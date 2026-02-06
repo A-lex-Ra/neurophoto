@@ -1,21 +1,21 @@
-# 🚀 NeuroPhoto - Быстрая установка и запуск
+﻿# NeuroPhoto - Quick Install and Run
 
-## 📋 Предварительные требования
+## Prerequisites
 
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) установлен и запущен
-- [Node.js 20+](https://nodejs.org/) установлен (для локальной разработки)
-- PowerShell (встроен в Windows)
+- Docker Desktop installed and running
+- Node.js 20+ installed (for local development)
+- PowerShell (bundled with Windows)
 
-## ⚡ Быстрый старт (Docker Compose - рекомендуется)
+## Quick Start (Docker Compose - Recommended)
 
-### 1. Настройка переменных окружения
+### 1. Environment Variables
 
 ```powershell
-# Создайте .env в корне проекта
-# Скопируйте следующее содержимое:
+# Create .env in repo root
+# Copy the following content:
 ```
 
-**Файл `.env` в корне проекта:**
+**Root `.env`:**
 ```env
 # OpenAI API Key (BotHub)
 OPENAI_API_KEY=your-bothub-api-key-here
@@ -25,7 +25,7 @@ JWT_SECRET=your-jwt-secret-change-in-production
 NEXTAUTH_SECRET=your-nextauth-secret-change-in-production
 ```
 
-**Файл `back/nest-back/.env`:**
+**`back/nest-back/.env`:**
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/imageai
 REDIS_HOST=localhost
@@ -40,291 +40,291 @@ OPENAI_API_KEY=your-bothub-api-key-here
 JWT_SECRET=your-jwt-secret-change-in-production
 ```
 
-### 2. Запуск всех сервисов
+### 2. Start All Services
 
 ```powershell
-# Убедитесь, что Docker Desktop запущен
+# Ensure Docker Desktop is running
 docker ps
 
-# Запустите все сервисы (PostgreSQL, Redis, MinIO, API, Worker, Frontend)
+# Start all services (PostgreSQL, Redis, MinIO, API, Worker, Frontend)
 docker-compose up -d
 
-# Проверьте статус
+# Check status
 docker-compose ps
 
-# Просмотр логов
+# Tail logs
 docker-compose logs -f
 ```
 
-### 3. Инициализация базы данных
+### 3. Initialize Database
 
 ```powershell
-# Миграции применяются автоматически при запуске API
-# Для создания демо пользователей выполните:
+# Migrations are applied automatically on API start
+# To create demo users:
 docker compose exec api npm run prisma:seed:prod
 ```
 
-### 4. Проверка работоспособности
+### 4. Verify
 
-Откройте в браузере:
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **Nginx (reverse proxy)**: http://localhost:8080
-- **MinIO Console**: http://localhost:9001 (minioadmin / minioadmin123)
+Open in browser:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- Nginx (reverse proxy): http://localhost:8080
+- MinIO Console: http://localhost:9001 (minioadmin / minioadmin123)
 
-## 📝 Ручная установка (для разработки)
+## Manual Setup (for Development)
 
-### 1. Настройка переменных окружения
+### 1. Environment Variables
 
-Создайте файлы `.env` как описано в разделе "Быстрый старт" выше.
+Create `.env` files as described in Quick Start above.
 
-### 2. Запуск инфраструктуры
+### 2. Start Infrastructure Only
 
 ```powershell
-# Убедитесь, что Docker Desktop запущен
+# Ensure Docker Desktop is running
 docker ps
 
-# Запустите только инфраструктурные сервисы
+# Start infra services only
 docker-compose up -d postgres redis minio minio-init
 
-# Проверьте статус
+# Check status
 docker-compose ps
 ```
 
-### 3. Настройка Backend
+### 3. Backend Setup
 
 ```powershell
 cd back/nest-back
 
-# Установите зависимости
+# Install dependencies
 npm install
 
-# Создайте .env файл (см. раздел выше)
+# Create .env file (see above)
 
-# Сгенерируйте Prisma Client
+# Generate Prisma Client
 npm run prisma:generate
 
-# Примените миграции
+# Apply migrations
 npm run prisma:migrate
 
-# Создайте демо пользователей
+# Seed demo users
 npm run prisma:seed
 ```
 
-### 4. Настройка Frontend
+### 4. Frontend Setup
 
 ```powershell
 cd neurophoto-front
 
-# Установите зависимости
+# Install dependencies
 npm install
 
-# Создайте .env.local
+# Create .env.local
 echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
 echo "NEXTAUTH_URL=http://localhost:3000" >> .env.local
 echo "NEXTAUTH_SECRET=your-nextauth-secret" >> .env.local
 ```
 
-## 🎯 Запуск приложения
+## Run the App
 
-### Вариант 1: Локальная разработка (3 терминала)
+### Option 1: Local Development (3 terminals)
 
-**Терминал 1 - Backend API:**
+**Terminal 1 - Backend API:**
 ```powershell
 cd back/nest-back
 npm run start:dev
 ```
 
-**Терминал 2 - Worker:**
+**Terminal 2 - Worker:**
 ```powershell
 cd back/nest-back
 npm run start:dev -- --entryFile worker
 ```
 
-**Терминал 3 - Frontend:**
+**Terminal 3 - Frontend:**
 ```powershell
 cd neurophoto-front
 npm run dev
 ```
 
-### Вариант 2: Docker Compose (весь стек)
+### Option 2: Docker Compose (full stack)
 
 ```powershell
-# Сборка и запуск всех сервисов
+# Build and start all services
 docker-compose up --build
 
-# В фоне
+# In background
 docker-compose up -d --build
 
-# Остановить все сервисы
+# Stop all services
 docker-compose down
 
-# Остановить и удалить volumes (БД будет очищена)
+# Stop and remove volumes (DB will be reset)
 docker-compose down -v
 ```
 
-## 🌐 URL-адреса
+## URLs
 
-После успешного запуска доступны:
+After successful startup:
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:3001
-- **Nginx (reverse proxy)**: http://localhost:8080
-- **MinIO Console**: http://localhost:9001
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+- Nginx (reverse proxy): http://localhost:8080
+- MinIO Console: http://localhost:9001
   - Login: `minioadmin`
   - Password: `minioadmin123`
 
-## 👤 Демо пользователи
+## Demo Users
 
-После выполнения `npm run prisma:seed` или `docker compose exec api npm run prisma:seed:prod` создаются:
+After running `npm run prisma:seed` or `docker compose exec api npm run prisma:seed:prod`:
 
-**Обычный пользователь:**
+**Regular user:**
 - Email: `demo@neurophoto.com`
 - Password: `demo123`
 - Credits: 100
 
-**Администратор:**
+**Admin:**
 - Email: `admin@neurophoto.com`
 - Password: `admin123`
 - Credits: 1000
 
-## 🔍 Проверка работоспособности
+## Verification Checklist
 
-### 1. Проверка инфраструктуры
+### 1. Infrastructure
 
 ```powershell
-# Проверка Docker контейнеров
+# Check Docker containers
 docker-compose ps
 
-# Все должны быть в статусе "Up" или "running"
+# All should be "Up" or "running"
 ```
 
-### 2. Проверка БД
+### 2. Database
 
 ```powershell
-# Вариант 1: Через Prisma Studio (локальная разработка)
+# Option 1: Prisma Studio (local dev)
 cd back/nest-back
 npx prisma studio
-# Откроется http://localhost:5555
+# Opens http://localhost:5555
 
-# Вариант 2: Через psql в Docker
+# Option 2: psql in Docker
 docker compose exec postgres psql -U postgres -d imageai -c 'SELECT * FROM "User";'
 
-# Проверка кодов доступа (если используются)
+# Check access codes (if used)
 docker compose exec postgres psql -U postgres -d imageai -c 'SELECT * FROM "AccessCode";'
 ```
 
-### 3. Проверка API
+### 3. API
 
 ```powershell
-# Проверка health endpoint
+# Health endpoint
 curl http://localhost:3001
 
-# Должен вернуть "Hello World!" или подобное
+# Should return "Hello World!" or similar
 ```
 
-### 4. Проверка MinIO
+### 4. MinIO
 
-Откройте http://localhost:9001 в браузере:
-- Войдите: minioadmin / minioadmin123
-- Проверьте наличие bucket `generations`
+Open http://localhost:9001 in a browser:
+- Login: minioadmin / minioadmin123
+- Verify bucket `generations`
 
-## 🐛 Решение проблем
+## Troubleshooting
 
-### Docker не запускается
+### Docker Does Not Start
 
 ```powershell
-# Проверьте статус Docker
+# Check Docker status
 docker ps
 
-# Если ошибка - запустите Docker Desktop
+# If there is an error, start Docker Desktop
 ```
 
-### Ошибки при npm install
+### npm install Errors
 
 ```powershell
-# Очистите кэш и переустановите
+# Clear cache and reinstall
 npm cache clean --force
 npm install
 
-# Если проблемы с зависимостями
+# If dependency problems persist
 rm -rf node_modules package-lock.json
 npm install
 ```
 
-### Ошибки Prisma
+### Prisma Errors
 
 ```powershell
-# Пересоздайте БД
+# Recreate DB
 docker-compose down -v
 docker-compose up -d postgres
 
-# Подождите 10 секунд
+# Wait 10 seconds
 Start-Sleep -Seconds 10
 
-# Примените миграции заново
+# Re-apply migrations
 cd back/nest-back
 npm run prisma:migrate
 npm run prisma:seed
 ```
 
-### Порты заняты
+### Ports in Use
 
-Если порты 3000, 3001, 5432, 6379, 8080, 9000 или 9001 заняты:
+If ports 3000, 3001, 5432, 6379, 8080, 9000 or 9001 are in use:
 
-1. Найдите процессы:
+1. Find the processes:
 ```powershell
 netstat -ano | findstr :3000
 netstat -ano | findstr :3001
 netstat -ano | findstr :8080
 ```
 
-2. Измените порты в `docker-compose.yml` и `.env` файлах
+2. Change ports in `docker-compose.yml` and `.env` files.
 
-### MinIO не создает bucket
+### MinIO Bucket Missing
 
 ```powershell
-# Пересоздайте minio-init
+# Recreate minio-init
 docker-compose rm -f minio-init
 docker-compose up -d minio-init
 
-# Проверьте логи
+# Check logs
 docker-compose logs minio-init
 ```
 
-### Ошибки генерации изображений
+### Image Generation Errors
 
 ```powershell
-# Проверьте логи worker
+# Check worker logs
 docker-compose logs -f worker
 
-# Проверьте, что OPENAI_API_KEY установлен
+# Verify OPENAI_API_KEY is set
 docker compose exec api printenv | findstr OPENAI_API_KEY
 ```
 
-## 📦 Полезные команды
+## Useful Commands
 
 ### Docker
 
 ```powershell
-# Остановить все сервисы
+# Stop all services
 docker-compose down
 
-# Остановить и удалить volumes (БД будет очищена)
+# Stop and remove volumes (DB will be reset)
 docker-compose down -v
 
-# Просмотр логов всех сервисов
+# Tail logs for all services
 docker-compose logs -f
 
-# Логи конкретного сервиса
+# Logs for a specific service
 docker-compose logs -f api
 docker-compose logs -f worker
 docker-compose logs -f web
 
-# Перезапустить конкретный сервис
+# Restart a specific service
 docker-compose restart api
 
-# Выполнить команду в контейнере
+# Run a command in a container
 docker compose exec api npm run prisma:seed:prod
 docker compose exec postgres psql -U postgres -d imageai
 ```
@@ -334,30 +334,30 @@ docker compose exec postgres psql -U postgres -d imageai
 ```powershell
 cd back/nest-back
 
-# Разработка
-npm run start:dev                # Запуск API в dev режиме
-npm run start:dev -- --entryFile worker  # Запуск Worker в dev режиме
+# Development
+npm run start:dev                # Start API in dev mode
+npm run start:dev -- --entryFile worker  # Start Worker in dev mode
 
 # Production
-npm run build                    # Сборка
-npm run start:prod               # Запуск API в prod режиме
-npm run start:worker             # Запуск Worker в prod режиме
+npm run build                    # Build
+npm run start:prod               # Start API in prod mode
+npm run start:worker             # Start Worker in prod mode
 
-# Тесты
-npm run test                     # Unit тесты
-npm run test:watch               # Watch режим
+# Tests
+npm run test                     # Unit tests
+npm run test:watch               # Watch mode
 npm run test:cov                 # Coverage
-npm run test:e2e                 # E2E тесты
+npm run test:e2e                 # E2E tests
 
 # Prisma
-npm run prisma:generate          # Генерация Prisma Client
-npm run prisma:migrate           # Создать новую миграцию
-npm run prisma:deploy            # Применить миграции (production)
-npm run prisma:seed              # Seed данные (dev)
-npm run prisma:seed:prod         # Seed данные (prod)
-npx prisma studio                # Prisma Studio (GUI для БД)
+npm run prisma:generate          # Generate Prisma Client
+npm run prisma:migrate           # Create a new migration
+npm run prisma:deploy            # Apply migrations (production)
+npm run prisma:seed              # Seed data (dev)
+npm run prisma:seed:prod         # Seed data (prod)
+npx prisma studio                # Prisma Studio (GUI)
 
-# Форматирование
+# Formatting
 npm run format                   # Prettier
 npm run lint                     # ESLint
 ```
@@ -367,53 +367,53 @@ npm run lint                     # ESLint
 ```powershell
 cd neurophoto-front
 
-# Разработка
-npm run dev                      # Запуск в dev режиме
+# Development
+npm run dev                      # Start in dev mode
 
 # Production
-npm run build                    # Сборка для production
-npm run start                    # Запуск production сборки
+npm run build                    # Build for production
+npm run start                    # Start production build
 
-# Линтинг
+# Linting
 npm run lint                     # Next.js lint
 ```
 
-## 📚 Дополнительно
+## Additional Docs
 
-- **Полная документация**: [README.md](./README.md)
-- **API документация**: [API.md](./API.md)
-- **Реализованная функциональность**: [IMPLEMENTATION.md](./IMPLEMENTATION.md)
-- **Архитектура**: [.github/copilot-instructions.md](./.github/copilot-instructions.md)
-- **Prisma схема**: [back/nest-back/prisma/schema.prisma](./back/nest-back/prisma/schema.prisma)
+- Full documentation: [README.md](./README.md)
+- API documentation: [API.md](./API.md)
+- Implemented features: [IMPLEMENTATION.md](./IMPLEMENTATION.md)
+- Architecture: [.github/copilot-instructions.md](./.github/copilot-instructions.md)
+- Prisma schema: [back/nest-back/prisma/schema.prisma](./back/nest-back/prisma/schema.prisma)
 
-## 🤖 AI Модель
+## AI Model
 
-Проект использует **Gemini 2.5 Flash Image Preview** через BotHub API (OpenAI-compatible endpoint).
+This project uses **Gemini 2.5 Flash Image Preview** via BotHub (OpenAI-compatible endpoint).
 
-Для получения API ключа:
-1. Зарегистрируйтесь на [BotHub](https://bothub.chat/)
-2. Получите API ключ
-3. Добавьте его в `.env` файл как `OPENAI_API_KEY`
+To get an API key:
+1. Register at BotHub
+2. Create an API key
+3. Add it to `.env` as `OPENAI_API_KEY`
 
-## 🆘 Поддержка
+## Support
 
-Если возникли проблемы:
+If you run into issues:
 
-1. **Проверьте логи**: `docker-compose logs -f`
-2. **Убедитесь, что Docker запущен**: `docker ps`
-3. **Проверьте, что все порты свободны**: см. раздел "Решение проблем"
-4. **Убедитесь, что .env файлы созданы** и содержат корректные значения
-5. **Проверьте статус сервисов**: `docker-compose ps`
-6. **Проверьте API ключ**: убедитесь, что `OPENAI_API_KEY` установлен корректно
+1. Check logs: `docker-compose logs -f`
+2. Ensure Docker is running: `docker ps`
+3. Ensure ports are free: see the Troubleshooting section
+4. Ensure `.env` files exist and have correct values
+5. Check service status: `docker-compose ps`
+6. Verify your API key: ensure `OPENAI_API_KEY` is set correctly
 
-### Частые проблемы:
+### Common Problems
 
-- ❌ **"Cannot connect to Docker daemon"** → Запустите Docker Desktop
-- ❌ **"Port already in use"** → Остановите процесс на занятом порту или измените порт в docker-compose.yml
-- ❌ **"Prisma Client not generated"** → Выполните `npm run prisma:generate`
-- ❌ **"MinIO bucket not found"** → Пересоздайте minio-init: `docker-compose up -d minio-init`
-- ❌ **"OpenAI API error"** → Проверьте корректность API ключа BotHub
+- "Cannot connect to Docker daemon" → Start Docker Desktop
+- "Port already in use" → Stop the process or change ports in docker-compose
+- "Prisma Client not generated" → Run `npm run prisma:generate`
+- "MinIO bucket not found" → Recreate minio-init: `docker-compose up -d minio-init`
+- "OpenAI API error" → Verify your BotHub API key
 
 ---
 
-**Готово к работе! 🎉**
+Ready to ship.

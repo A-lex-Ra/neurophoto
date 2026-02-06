@@ -1,100 +1,111 @@
-# 🎨 NeuroPhoto - AI Image Generator
+﻿# NeuroPhoto — AI Image Generator
 
-SaaS-платформа для генерации изображений с помощью AI (Gemini 2.5 Flash через BotHub API).
+[![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-## 🚀 Быстрый старт
+NeuroPhoto is a SaaS platform for AI image generation and editing using Gemini 2.5 Flash Image Preview via BotHub (OpenAI-compatible API).
 
-### 1. Запуск инфраструктуры (PostgreSQL, Redis, MinIO)
+## Highlights
+
+- Image upload and AI-powered transformation
+- Real-time generation progress via SSE
+- User accounts with JWT access/refresh tokens
+- Credit-ready billing model with Stripe integration (in progress)
+- MinIO-backed media storage with file abstraction
+
+## Tech Stack
+
+- Frontend: Next.js 14, TypeScript, Tailwind CSS
+- Backend: NestJS 11, TypeScript, Node.js 20
+- Database: PostgreSQL 15 + Prisma
+- Queue/Cache: Redis 7 + BullMQ
+- Storage: MinIO (S3-compatible)
+- Auth: NextAuth.js + JWT (access/refresh)
+- Payments: Stripe
+- Infra: Docker + Docker Compose
+
+## Quick Start
+
+### 1. Start Infrastructure (PostgreSQL, Redis, MinIO)
 
 ```powershell
-# Клонируйте репозиторий и перейдите в директорию
-cd neurophoto
-
-# Создайте .env файл в корне проекта
+# Create .env in repo root
 # OPENAI_API_KEY=your-api-key
 # JWT_SECRET=your-secret
 # NEXTAUTH_SECRET=your-nextauth-secret
 
-# Запустите инфраструктуру
 docker-compose up -d postgres redis minio minio-init
 ```
 
-### 2. Настройка Backend (NestJS)
+### 2. Backend (NestJS)
 
 ```powershell
 cd back/nest-back
 
-# Скопируйте .env.example в .env
+# Copy env
 cp .env.example .env
 
-# Отредактируйте .env и добавьте свой OPENAI_API_KEY
-
-# Установите зависимости
+# Install dependencies
 npm install
 
-# Сгенерируйте Prisma Client
+# Generate Prisma Client
 npm run prisma:generate
 
-# Запустите миграции
+# Run migrations
 npm run prisma:migrate
 
-# Запустите в режиме разработки
+# Start API (dev)
 npm run start:dev
 
-# чтобы генерировать коды доступа в докере:
+# Generate access codes in Docker (optional)
 docker compose exec api node dist/src/scripts/create-codes.js
 ```
 
-Backend будет доступен на `http://localhost:3001`
+Backend will be available at `http://localhost:3001`.
 
-### 3. Запуск Worker (обработка очереди)
+### 3. Worker (Queue Processing)
 
 ```powershell
-# В отдельном терминале
 cd back/nest-back
 npm run start:dev -- --entryFile worker
 ```
 
-### 4. Настройка Frontend (Next.js)
+### 4. Frontend (Next.js)
 
 ```powershell
 cd neurophoto-front
 
-# Установите зависимости
 npm install
 
-# Создайте .env.local
 echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > .env.local
-
-# Запустите в режиме разработки
 npm run dev
 ```
 
-Frontend будет доступен на `http://localhost:3000`
+Frontend will be available at `http://localhost:3000`.
 
-## 🐳 Запуск через Docker Compose (полный стек)
+## Full Stack via Docker Compose
 
 ```powershell
-# Создайте .env в корне проекта с необходимыми переменными
+# Create .env in repo root with required variables
 # OPENAI_API_KEY=...
 # JWT_SECRET=...
 # NEXTAUTH_SECRET=...
 
-# Запустите все сервисы
+# Start all services
 docker-compose up -d
 
-# Проверьте логи
+# Follow logs
 docker-compose logs -f
 ```
 
-Сервисы:
+Services:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3001
 - MinIO Console: http://localhost:9001 (minioadmin / minioadmin123)
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
 
-## 📦 Структура проекта
+## Project Structure
 
 ```
 neurophoto/
@@ -102,82 +113,63 @@ neurophoto/
 │   └── nest-back/          # NestJS Backend
 │       ├── src/
 │       │   ├── prisma/     # Prisma client
-│       │   ├── storage/    # MinIO интеграция
+│       │   ├── storage/    # MinIO integration
 │       │   ├── queue/      # BullMQ
 │       │   ├── openai/     # OpenAI client
-│       │   ├── generation/ # Генерация изображений
-│       │   └── gallery/    # Управление файлами
+│       │   ├── generation/ # Image generation
+│       │   └── gallery/    # File management
 │       └── prisma/
 │           └── schema.prisma
 │
 ├── neurophoto-front/       # Next.js Frontend
 │   ├── app/
-│       └── components/
+│   └── components/
 │
 └── docker-compose.yml
 ```
 
-## 🔧 Разработка
-
-### Backend команды
-
-```powershell
-npm run start:dev          # Запуск API в dev режиме
-npm run start:worker       # Запуск Worker в prod режиме
-npm run build              # Сборка
-npm run prisma:generate    # Генерация Prisma Client
-npm run prisma:migrate     # Создание миграции
-npm run test               # Тесты
-```
-
-### Frontend команды
-
-```powershell
-npm run dev                # Запуск в dev режиме
-npm run build              # Сборка для production
-npm run start              # Запуск production сборки
-```
-
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Gallery Service
-- `POST /api/gallery/upload` - Загрузить файл
-- `GET /api/gallery/:fileId` - Скачать файл
-- `GET /api/gallery/user/:userId` - Список файлов пользователя
-- `DELETE /api/gallery/:fileId` - Удалить файл
+- `POST /api/gallery/upload` - Upload file
+- `GET /api/gallery/:fileId` - Download file
+- `GET /api/gallery/user/:userId` - List user files
+- `DELETE /api/gallery/:fileId` - Soft delete file
 
 ### Generation Service
-- `POST /api/generations/create` - Создать задачу генерации
-- `GET /api/generations/stream/:jobId` - SSE stream прогресса
-- `GET /api/generations/:id` - Получить результат
-- `GET /api/generations/list` - История генераций
+- `POST /api/generations/create` - Create generation task
+- `GET /api/generations/stream/:jobId` - SSE stream
+- `GET /api/generations/:id` - Get result
+- `GET /api/generations/list` - Generation history
 
 ### Tools Service
-- `GET /api/tools/list` - Список инструментов
-- `POST /api/tools/:toolName/call` - Вызвать инструмент
+- `GET /api/tools/list` - Tool list
+- `POST /api/tools/:toolName/call` - Call tool
 
-## 🗄️ Database
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
 
-Prisma управляет схемой БД. Основные модели:
-- `User` - пользователи
-- `File` - файлы в MinIO
-- `Generation` - задачи генерации
-- `Transaction` - финансовые транзакции
+## Database
 
-### Миграции
+Prisma manages the DB schema. Core models:
+- `User`
+- `File`
+- `Generation`
+- `Transaction`
+
+### Migrations
 
 ```powershell
-# Создать новую миграцию
 npm run prisma:migrate
-
-# Применить миграции (production)
 npm run prisma:deploy
-
-# Prisma Studio (GUI для БД)
 npx prisma studio
 ```
 
-## 🔐 Переменные окружения
+## Environment Variables
 
 ### Backend (.env)
 ```env
@@ -198,23 +190,22 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-## 📝 TODO
+## Roadmap
 
-- [ ] Аутентификация (JWT)
-- [ ] Система кредитов
-- [ ] Stripe интеграция
+- [ ] Credits UI and billing flows
+- [ ] Stripe checkout + webhooks
 - [ ] Rate limiting
-- [ ] Мониторинг и логирование
-- [ ] E2E тесты
+- [ ] Monitoring and logging
+- [ ] Expanded E2E coverage
 
-## 🤝 Contributing
+## Contributing
 
-1. Fork репозиторий
-2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit изменения (`git commit -m 'Add amazing feature'`)
-4. Push в branch (`git push origin feature/amazing-feature`)
-5. Создайте Pull Request
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to your branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 License
+## License
 
 MIT
